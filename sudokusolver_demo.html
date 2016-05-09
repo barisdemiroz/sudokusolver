@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>Sudoku solver via difference map</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+		<script src="math.js" type="text/javascript"></script>
+		<script src="munkres.js" type="text/javascript"></script>
+		<script src="sudokusolver.js" type="text/javascript"></script>
+		<script src="main.js" type="text/javascript"></script>
+
+		<style>
+		a, a:visited, a:hover, a:active {color: #444477;}
+		table,td {padding:0pt;}
+		.gridcontainer {padding:8pt;}
+		.grid {border-collapse:collapse; background-color:#FFFFFF; border-right: #666699 solid 2px;}
+		.c0,.e0,.f0,.g0,.h0,.i0 {border-left: #DDDDEE solid 1px; border-top: #DDDDEE solid 1px;}
+		.c0,.e0,.f0,.g0,.h0,.i0 {width:24pt; height:25pt; vertical-align:middle; text-align:center; font-size:18pt; font-family:times,serif;}
+		.s0 {-webkit-appearance: none; outline:none; border: solid 0 #fff; text-align:center; margin:0; width:24pt; background-color: transparent;font-size:18pt; font-family:times,"times new roman",serif; color:#000000;}
+		.e0,.g0,.i0 {border-left: #666699 solid 2px;}
+		.f0,.g0 {border-top: #666699 solid 2px;}
+		.h0,.i0 {border-bottom: #666699 solid 2px;}
+		#tableContainers table {float:left;}
+		</style>
+	</head>
+	<body>
+		<table id="layoutTable">
+		<tr>
+		<td class="gridcontainer" rowspan="2">
+			<p>Fill the grid below with the puzzle and hit "Go!" button. When diff between projections reach zero, all projections are same and it is a solution.<br/>
+			You can also load <a id="easyExample" href="#">easy example</a> <a id="hardExample" href="#">hard example</a></p>
+			<table id="inputTable" class="grid" cellpadding="0" cellspacing="0">
+				<tbody>
+					<tr>
+						<td class="g0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="g0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="g0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+					</tr>
+					<tr>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+					</tr>
+					<tr>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+					</tr>
+					<tr>
+						<td class="g0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="g0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="g0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+					</tr>
+					<tr>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+					</tr>
+					<tr>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+					</tr>
+					<tr>
+						<td class="g0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="g0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="g0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="f0"><input class="s0" size="2" autocomplete="off"></td>
+					</tr>
+					<tr>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="e0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="c0"><input class="s0" size="2" autocomplete="off"></td>
+					</tr>
+					<tr>
+						<td class="i0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="h0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="h0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="i0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="h0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="h0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="i0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="h0"><input class="s0" size="2" autocomplete="off"></td>
+						<td class="h0"><input class="s0" size="2" autocomplete="off"></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<button type="button" id="goButton">Go!</button>
+			<button type="button" id="pauseButton" disabled>Pause</button>
+			<button type="button" id="stepButton">Take 1 step</button>
+			<button type="button" id="stopButton" disabled>Stop</button>
+			<p>
+				Iteration #<span id="iterNo"></span><br/>
+				Diff between projections: <span id="deltaNorm"></span>
+			</p>
+			<p>More information on the method in my <a href="http://www.anlak.com/2016/05/a-different-kind-of-sudoku-solver.html">blog post</a></p>
+			<p>Source code is <a href="https://github.com/barisdemiroz/sudokusolver">here</a>.</p>
+		</td>
+		<td class="gridcontainer">
+			<div id="rowProjectionContainer">Row projection</div>
+		</td>
+		<td class="gridcontainer">
+			<div id="colProjectionContainer">Column projection</div>
+		</td>
+		</tr>
+		<tr>
+		<td class="gridcontainer">
+			<div id="blockProjectionContainer">Block projection</div>
+		</td>
+		<td class="gridcontainer">
+			<div id="symbolProjectionContainer">Symbol projection</div>
+		</td>
+		</tr>
+		</table>
+	</body>
+</html>
